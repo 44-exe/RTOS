@@ -43,8 +43,8 @@ int Max_counter; /* hold the Max counter unmber for aligned printing as input*/
 int fd[2];//File descriptor for creating a pipe
 
 /* --- Prototypes --- */
-int insert_item(ThreadParams *p, u_int8_t item);
-int remove_item(ThreadParams *p, u_int8_t *item);
+int insert_item(ThreadParams *p, char item);
+int remove_item(ThreadParams *p, char *item);
 
 
 /* Initializes data and utilities used in thread params */
@@ -62,7 +62,7 @@ void* ThreadC(void *params);
 /* --- Main Code --- */
 int main(int argc, char const *argv[])
 {
-  int err, result;
+  int result;
   pthread_t tid[3];
   //pthread_attr_t attr;
   ThreadParams params;
@@ -85,19 +85,19 @@ int main(int argc, char const *argv[])
 
   // Create Threads
   // pthread_create(&(tid[0]), &attr, &ThreadA, (void*)(&params));  // resource is not sufficient (may require change)
-  if(pthread_create(&(tid[0]), &attr, &ThreadA, (void*)(&params)) !=0) 
+  if(pthread_create(&(tid[0]), &attr, &ThreadA, (void*)(&params)) != 0) 
   { 
     perror ("ERROR MAIN: failed create thread A\n"); 
     exit (1);
   }
 
-  if(pthread_create(&(tid[1]), &attr, &ThreadB, (void*)(&params)) !=0) 
+  if(pthread_create(&(tid[1]), &attr, &ThreadB, (void*)(&params)) != 0) 
   { 
     perror ("ERROR MAIN: failed create thread B\n"); 
     exit (1);
   }
 
-  if(pthread_create(&(tid[2]), &attr, &ThreadC, (void*)(&params)) !=0) 
+  if(pthread_create(&(tid[2]), &attr, &ThreadC, (void*)(&params)) != 0) 
   { 
     perror ("ERROR MAIN: failed create thread C\n"); 
     exit (1);
@@ -137,23 +137,21 @@ void *ThreadA(void *params)
 {
   //TODO: add your code
   ThreadParams *p = params;
-  // sem_wait(&(p->sem_A));
-  printf("/****** RUNNING THREAD A ******/\n");
-
-  printf("\nthread A read from data.txt\n");
   FILE *pfile;
   char c[255];
   char file_name[50] = "data.txt";
-  char check[12] = "end_header\n";
   char eof[4] = "EOF";  // describes the end of file
-  // int sig = 0;
   int result;
+
+  printf("/****** RUNNING THREAD A ******/\n");
+  printf("\nthread A read from data.txt\n");
   
   if (file_name == NULL)
   {
     printf("ERROR A: invalid file name\n");
     exit(1);
   }
+
   pfile = fopen(file_name, "r");
   if (pfile == NULL)
   {
@@ -199,6 +197,10 @@ void *ThreadA(void *params)
 void *ThreadB(void *params)
 {
   ThreadParams *p = params;
+  char buff[255];
+  int result;
+  int index;
+
   printf("/****** RUNNING THREAD B ******/\n");
   //TODO: add your code
   printf("\nthread B reading from thread A\n");
@@ -206,13 +208,10 @@ void *ThreadB(void *params)
   while(1)
   {
     sem_wait(&(p->sem_B));
-    char ch;
-    int result;
-    int index=0;
-    char buff[255];
+    index=0;
     result = read(fd[0], buff, 255);
     // printf("DEBUG B: result: %d\n", result);
-    printf("DEBUG B: buff: %s\n", buff);
+    printf("DEBUG B: buff: %s", buff);
     if (result != 255)
     {
       printf("DEBUG B: result error Thread B!\n");
@@ -222,7 +221,7 @@ void *ThreadB(void *params)
 
     if (!strcmp(buff, "EOF"))
     {
-      printf("DEBUG B: reading pipe has completed\n");
+      printf("\nDEBUG B: reading pipe has completed\n");
       // pthread_mutex_lock(&p->lock);
       // insert_item(params, '\0');
       insert_item(params, 2);
@@ -250,20 +249,23 @@ void *ThreadB(void *params)
     sem_post(&(p->sem_C));
   }
   printf("/****** END OF THREAD B ******/\n");
+  return 0;
 }
 
 
 void *ThreadC(void *params)
 {
   ThreadParams *p = params;
-  char item='0';
-  static char tmp_buf[400];
+  FILE * pfile_out;
+  static char tmp_buf[255];
+  int write_to_file = 0;
+  int ii;
+  char tmp;
 
   printf("/****** RUNNING THREAD C ******/\n");
   //TODO: add your code
   printf("\nThread C read from Thread B\n");
 
-  FILE * pfile_out;
   pfile_out = fopen("output.txt", "w");
   if (pfile_out == NULL)
   {
@@ -271,12 +273,11 @@ void *ThreadC(void *params)
     exit(1);
   }
 
-  int write_to_file = 0;
-  char tmp;
+  
   while(1)
   {
     sem_wait(&(p->sem_C));
-    int ii=0;
+    ii=0;
     Max_counter = counter;
     // pthread_mutex_lock(&p->lock); // Lock Mutex
     while(counter)
@@ -287,7 +288,7 @@ void *ThreadC(void *params)
 
         if (write_to_file == 1 && tmp_buf[ii] != 2)
           fwrite(&tmp_buf[ii], sizeof(tmp_buf[ii]), 1, pfile_out);
-        if (strstr(tmp_buf, "end_header") != NULL && write_to_file == 0)
+        if (strstr(tmp_buf, "end_header\n") != NULL && write_to_file == 0)
         {
           printf("end_header detected!!!\n");
           printf("tmp_buf: %s\n", tmp_buf);
@@ -299,13 +300,13 @@ void *ThreadC(void *params)
     }
 
     // if (counter == 0 && tmp_buf[0] == 'E' && tmp_buf[1] == 'O' && tmp_buf[2] == 'F')
-    printf("tmp_buf[0]: %d   ", tmp_buf[0]);
-    printf("tmp_buf[0]: %c\n", tmp_buf[0]);
+    // printf("tmp_buf[0]: %d   ", tmp_buf[0]);
+    // printf("tmp_buf[0]: %c\n", tmp_buf[0]);
     if (counter == 0 && tmp_buf[0] == 2)
     {
       printf("/****** END OF THREAD C ******/\n");
-      printf("DEBUG C: Final counter: \n%d\n", ii);
-      printf("DEBUG C: Final buffer: \n%s\n", tmp_buf);
+      // printf("DEBUG C: Final counter: %d\n", ii);
+      printf("DEBUG C: Final buffer: %s\n", tmp_buf);
       sem_close(&(p->sem_A));
       sem_close(&(p->sem_B));
       sem_close(&(p->sem_C));
@@ -313,15 +314,15 @@ void *ThreadC(void *params)
     }
     else
     {
-      printf("DEBUG C: counter: %d\n", counter);
-      printf("DEBUG C: tmp_buf[ii]: %d\n", tmp_buf[ii]);
+      // printf("DEBUG C: counter: %d\n", counter);
+      printf("DEBUG C: tmp_buf[ii]: %s\n", tmp_buf);
       sem_post(&p->sem_A);
     }
   }
 }
 
 /* Add an item to the buffer */
-int insert_item(ThreadParams *p, u_int8_t item) {
+int insert_item(ThreadParams *p, char item) {
    /* When the buffer is not full add the item
       and increment the counter*/
   // sleep(0.1);
@@ -338,11 +339,10 @@ int insert_item(ThreadParams *p, u_int8_t item) {
 }
 
 /* Remove an item from the buffer */
-int remove_item(ThreadParams *p, u_int8_t *item)
+int remove_item(ThreadParams *p, char *item)
 {
   /* When the buffer is not empty remove the item
      and decrement the counter */
-  static int tracker=0;
   if(counter > 0)
   {
     // *item = buffer[(Max_counter-counter-1)];

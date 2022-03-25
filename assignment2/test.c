@@ -1,11 +1,16 @@
 #include <stdio.h>
+#include <string.h>
 
 int main()
 {
-    int x[] = {0,1,2,3};
+    char *x = "abcd";
 
-    printf("x[-1] = %d", x[-1]);
-
+    if(strstr("abcd", x) != NULL)
+    {
+        printf("PASS!\n");
+    }
+    
+    
     return 0;
 }
 
