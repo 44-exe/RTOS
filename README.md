@@ -12,3 +12,8 @@
    and ass2.c should complie
 
 
+#2022.03.28
+-- improved makefile, now you can make clean
+-- uploading to test this version on redhat linux
+
+

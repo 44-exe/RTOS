@@ -11,7 +11,7 @@
 
 all:
 	bash build.sh
-#	gcc -Wall -Werror -o ass2 ass2.c -pthread
 
 clean: 
-	  $(RM) ass
+	  $(RM) ass2
+	  $(RM) output.txt
