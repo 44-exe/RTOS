@@ -16,4 +16,10 @@
 -- improved makefile, now you can make clean
 -- uploading to test this version on redhat linux
 
+#2022.03.31
+-- edited makefile
+-- cleaned workspace
+-- to build the program just type "make"
+-- to clean the build and remove txt file just type "make clean"
+
 
