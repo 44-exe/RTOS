@@ -15,5 +15,5 @@ build:
 	bash build.sh
 
 clean: 
-	  $(RM) ass2
+	  $(RM) assignment2
 	  $(RM) output.txt
