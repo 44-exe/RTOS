@@ -9,7 +9,10 @@
 # object files 
 #
 
-all:
+all: clean build
+	#bash build.sh
+
+build:
 	bash build.sh
 
 clean: 

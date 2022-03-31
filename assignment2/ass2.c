@@ -34,12 +34,10 @@ typedef struct ThreadParams {
   pthread_mutex_t lock;
 } ThreadParams;
 
+/* * * * * * * * * * GLOBAL VARIABLES * * * * * * * * * */
 pthread_attr_t attr;
-
-
 int counter; /* buffer counter This is the global variable might cause critical section*/
 int Max_counter; /* hold the Max counter unmber for aligned printing as input*/
-
 int fd[2];//File descriptor for creating a pipe
 
 /* --- Prototypes --- */
@@ -79,8 +77,8 @@ int main(int argc, char const *argv[])
   result = pipe(fd);
   if (result < 0)
   {
-      perror("pipe error");
-      exit(1);
+    perror("pipe error");
+    exit(1);
   }
 
   // Create Threads
@@ -118,9 +116,9 @@ int main(int argc, char const *argv[])
 
 void initializeData(ThreadParams *params) {
   // Initialize Sempahores
-  sem_init(&(params->sem_A), 0, 1);
-  sem_init(&(params->sem_B), 0, 0);
-  sem_init(&(params->sem_C), 0, 0);
+  sem_init(&(params->sem_A), 0, 1);  // Start with thread A
+  sem_init(&(params->sem_B), 0, 0);  // initialise but dont signal
+  sem_init(&(params->sem_C), 0, 0);  // initialise but dont signal
   // Initialize thread attributes 
   pthread_attr_init(&attr);
   //TODO: add your code
@@ -294,6 +292,7 @@ void *ThreadC(void *params)
           printf("tmp_buf: %s\n", tmp_buf);
           write_to_file = 1;
           ii=0;
+          memset(tmp_buf, 0, 255);
         }
       }
       ii++;
@@ -310,6 +309,7 @@ void *ThreadC(void *params)
       sem_close(&(p->sem_A));
       sem_close(&(p->sem_B));
       sem_close(&(p->sem_C));
+      fclose(pfile_out);
       exit(0);
     }
     else
