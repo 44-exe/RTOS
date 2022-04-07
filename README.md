@@ -22,4 +22,8 @@
 -- to build the program just type "make"
 -- to clean the build and remove txt file just type "make clean"
 
+#2022.04.07
+-- argument input data.txt made
+-- now to run the code you must do this "./assignment2 data.txt"
+-- else it will not work
 

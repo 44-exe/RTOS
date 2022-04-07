@@ -41,6 +41,8 @@ int counter; /* buffer counter This is the global variable might cause critical 
 int Max_counter; /* hold the Max counter unmber for aligned printing as input*/
 int fd[2];//File descriptor for creating a pipe
 
+char *input_file;
+
 /* --- Prototypes --- */
 int insert_item(ThreadParams *p, char item);
 int remove_item(ThreadParams *p, char *item);
@@ -63,13 +65,20 @@ int main(int argc, char const *argv[])
 {
   int result;
   pthread_t tid[3];
-  //pthread_attr_t attr;
   ThreadParams params;
-  
-  if (argc != 2) 
+
+  if(argc < 2)
   {
-    fprintf(stderr, "USAGE:./main.out data.txt\n");
+    fprintf(stderr,"usage: input.txt <file name>\n");
+    return -1;
   }
+  if(argv < 0)
+  {
+    fprintf(stderr,"%s \n", *argv);
+    return -1;
+  }
+
+  input_file = (char*)argv[1];
     
   // Initialization
   initializeData(&params);
@@ -138,24 +147,24 @@ void *ThreadA(void *params)
   ThreadParams *p = params;
   FILE *pfile;
   char c[MAX_BUFFER];
-  char file_name[50] = "data.txt";
+  // char file_name[50] = "data.txt";
   char eof[4] = "EOF";  // describes the end of file
   int result;
 
   printf("/****** RUNNING THREAD A ******/\n");
   printf("\nthread A read from data.txt\n");
   
-  if (file_name == NULL)
+  if (input_file == NULL)
   {
     printf("ERROR A: invalid file name\n");
-    exit(1);
+    exit(10);
   }
 
-  pfile = fopen(file_name, "r");
+  pfile = fopen(input_file, "r");
   if (pfile == NULL)
   {
     printf("ERROR A: FAILED TO OPEN FILE!\n");
-    exit(1);
+    exit(11);
   }
 
   /******************** THREAD A MAIN LOOP ********************/
@@ -174,7 +183,7 @@ void *ThreadA(void *params)
       { 
         printf("DEBUG A: result error Thread A!\n");
         perror ("write"); 
-        exit (2);
+        exit(12);
       }
       else
       {
@@ -189,7 +198,7 @@ void *ThreadA(void *params)
       result=write(fd[1], &eof, MAX_BUFFER);
       sem_post(&(p->sem_B));
       printf("/****** END OF THREAD A ******/\n");
-      return 0;
+      exit(0);
     }
   }
 }
@@ -220,7 +229,7 @@ void *ThreadB(void *params)
     {
       printf("DEBUG B: result error Thread B!\n");
       perror("read");
-      exit(4);
+      exit(20);
     }
 
     if (!strcmp(buff, "EOF"))
@@ -253,7 +262,7 @@ void *ThreadB(void *params)
     sem_post(&(p->sem_C));
   }
   printf("/****** END OF THREAD B ******/\n");
-  return 0;
+  exit(0);
 }
 
 
@@ -274,7 +283,7 @@ void *ThreadC(void *params)
   if (pfile_out == NULL)
   {
     printf("ERROR A: FAILED TO OPEN FILE!\n");
-    exit(1);
+    exit(30);
   }
 
   /******************** THREAD C MAIN LOOP ********************/
@@ -333,7 +342,8 @@ void *ThreadC(void *params)
 }
 
 /* Add an item to the buffer */
-int insert_item(ThreadParams *p, char item) {
+int insert_item(ThreadParams *p, char item)
+{
    /* When the buffer is not full add the item
       and increment the counter*/
   // sleep(0.1);
