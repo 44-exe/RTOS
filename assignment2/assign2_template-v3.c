@@ -209,7 +209,7 @@ void *ThreadB(void *params)
   ThreadParams *p = params;
   char buff[MAX_BUFFER];
   int result;
-  int index;
+  // int index;
 
   printf("/****** RUNNING THREAD B ******/\n");
   //TODO: add your code
@@ -220,7 +220,7 @@ void *ThreadB(void *params)
   {
     // wait for semaphore
     sem_wait(&(p->sem_B));
-    index=0;
+    // index=0;
     result = read(fd[0], buff, MAX_BUFFER);
     /***************** PRINT THREADB HERE  *****************/
     // printf("DEBUG B: result: %d\n", result);
@@ -237,28 +237,18 @@ void *ThreadB(void *params)
       printf("\nDEBUG B: reading pipe has completed\n");
       // pthread_mutex_lock(&p->lock);
       // insert_item(params, '\0');
-      insert_item(params, 2);
+      // insert_item(params, 2);
+      p->message[0] = 2;
       // pthread_mutex_unlock(&p->lock);
       sem_post(&(p->sem_C));
       break;
     }
 
-    while(buff[index] != '\0')
+    for (int i=0; i<255; i++)
     {
-      // pthread_mutex_lock(&p->lock);
-      if (counter >= MAX_BUFFER-10)
-      {
-        printf("DEBUG B: Buffer is almost full!\n");
-        // pthread_mutex_unlock(&p->lock);
-        sem_post(&(p->sem_C));
-        break;
-      }
-      
-      insert_item(params, buff[index]);
-      // pthread_mutex_unlock(&p->lock);
-      index++;
+      p->message[i] = buff[i];
     }
-    // insert_item(params, buff[index]);
+
     sem_post(&(p->sem_C));
   }
   printf("/****** END OF THREAD B ******/\n");
@@ -270,10 +260,7 @@ void *ThreadC(void *params)
 {
   ThreadParams *p = params;
   FILE * pfile_out;
-  static char tmp_buf[MAX_BUFFER];
   int write_to_file = 0;
-  int ii;
-  char tmp;
 
   printf("/****** RUNNING THREAD C ******/\n");
   //TODO: add your code
@@ -291,39 +278,22 @@ void *ThreadC(void *params)
   {
     // wait for semaphore
     sem_wait(&(p->sem_C));
-    ii=0;
-    Max_counter = counter;
-    // pthread_mutex_lock(&p->lock); // Lock Mutex
-    while(counter)
+    if (write_to_file == 1 && p->message[0] != 2)
     {
-      if (remove_item(params, &tmp) == 0)
-      {
-        tmp_buf[ii] = tmp;
-
-        if (write_to_file == 1 && tmp_buf[ii] != 2)
-          fwrite(&tmp_buf[ii], sizeof(tmp_buf[ii]), 1, pfile_out);
-        if (strstr(tmp_buf, "end_header\n") != NULL && write_to_file == 0)
-        {
-          /***************** PRINT THREADC HERE *****************/
-          printf("end_header detected!!!\n");
-          // printf("tmp_buf: %s\n", tmp_buf);
-          write_to_file = 1;
-          ii=0;
-          memset(tmp_buf, 0, MAX_BUFFER);
-        }
-      }
-      ii++;
+      fputs(p->message, pfile_out);
+    }
+    if (strstr(p->message, "end_header") != NULL && write_to_file == 0)
+    {
+      printf("DEBUG C: Writing to file!\n");
+      write_to_file = 1;
     }
 
-    // if (counter == 0 && tmp_buf[0] == 'E' && tmp_buf[1] == 'O' && tmp_buf[2] == 'F')
-    // printf("tmp_buf[0]: %d   ", tmp_buf[0]);
-    // printf("tmp_buf[0]: %c\n", tmp_buf[0]);
-    if (counter == 0 && tmp_buf[0] == 2)
+
+    if (counter == 0 && p->message[0] == 2)
     {
       printf("/****** END OF THREAD C ******/\n");
       /***************** PRINT THREADC HERE *****************/
-      // printf("DEBUG C: Final counter: %d\n", ii);
-      printf("DEBUG C: Final buffer: %s\n", tmp_buf);
+      printf("DEBUG C: Final buffer: %s\n", p->message);
       sem_close(&(p->sem_A));
       sem_close(&(p->sem_B));
       sem_close(&(p->sem_C));
@@ -333,9 +303,9 @@ void *ThreadC(void *params)
     }
     else
     {
-      // printf("DEBUG C: counter: %d\n", counter);
       /***************** PRINT THREADC HERE *****************/
-      printf("DEBUG C: tmp_buf: %s\n", tmp_buf);
+      printf("DEBUG C: p->message: %s\n", p->message);
+      memset(p->message, 0, MAX_BUFFER);
       sem_post(&p->sem_A);
     }
   }
@@ -346,7 +316,6 @@ int insert_item(ThreadParams *p, char item)
 {
    /* When the buffer is not full add the item
       and increment the counter*/
-  // sleep(0.1);
   if(counter < MAX_BUFFER) 
   {
     p->message[counter] = (int)item;
@@ -366,7 +335,6 @@ int remove_item(ThreadParams *p, char *item)
      and decrement the counter */
   if(counter > 0)
   {
-    // *item = buffer[(Max_counter-counter-1)];
     *item = p->message[(Max_counter-counter)];
     counter--;
     return 0;
