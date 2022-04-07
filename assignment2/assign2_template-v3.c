@@ -152,7 +152,6 @@ void *ThreadA(void *params)
     char *tmp = fgets(c, sizeof(c), pfile);
     while (tmp != NULL)
     {
-      /***************** PRINT THREADA HERE *****************/
       printf("DEBUG A: Reading line from file: %s", c);
       // printf("DEBUG A: LEN c: %ld\n", sizeof(c));
       result=write(fd[1], &c, MAX_BUFFER);
@@ -240,7 +239,6 @@ void *ThreadC(void *params)
     if (strlen(p->message) == 0)
     {
       printf("/****** END OF THREAD C ******/\n");
-      /***************** PRINT THREADC HERE *****************/
       sem_close(&(p->sem_C));
       printf("DEBUG C: Closing output.txt!\n");
       fclose(pfile_out);
@@ -258,7 +256,6 @@ void *ThreadC(void *params)
       write_to_file = 1;
     }
 
-    /***************** PRINT THREADC HERE *****************/
     printf("DEBUG C: p->message: %s\n", p->message);
     memset(p->message, 0, MAX_BUFFER);
     sem_post(&p->sem_A);

@@ -24,6 +24,8 @@
 
 #2022.04.07
 -- argument input data.txt made
--- now to run the code you must do this "./assignment2 data.txt"
--- else it will not work
+-- now to run the code you must do this "./assignment2 data.txt"  (else it will not work)
+-- changed the code to close each semephore as thread ends
+
+
 
