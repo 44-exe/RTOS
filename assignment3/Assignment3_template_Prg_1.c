@@ -4,7 +4,9 @@
 This is a template for the subject of RTOS in University of Technology Sydney(UTS)
 Please complete the code based on the assignment requirement.
 
-Assignment 3 Program_2 template
+Assignment 3 Program_1 template
+Author: Jeong Bin Lee
+Date: 2022.04.29
 
 **********************************************************************************/
 /*

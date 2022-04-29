@@ -5,10 +5,12 @@ This is a template for the subject of RTOS in University of Technology Sydney(UT
 Please complete the code based on the assignment requirement.
 
 Assignment 3 Program_2 template
+Author: Jeong Bin Lee
+Date: 2022.04.29
 
 **********************************************************************************/
 /*
-  To compile prog_1 ensure that gcc is installed and run the following command:
+  To compile prog_2 ensure that gcc is installed and run the following command:
   gcc -Wall -O2 program_2.c -o prog_2 -lpthread -lrt
 
 */
@@ -41,7 +43,15 @@ int main(int argc, char* argv[])
 {
   //Register Ctrl+c(SIGINT) signal and call the signal handler for the function.
   //add your code here
+  signal(SIGINT, SignalHandler);
   
+  if(argc < 2)
+  {
+    fprintf(stderr,"usage: requires <int> (for example: ./Assignment3_Prg2 4)\n");
+    fprintf(stderr,"%s \n", *argv);
+    return -11;
+  }
+
   int i;
   // reference number
   int REFERENCESTRINGLENGTH=24;
@@ -61,20 +71,45 @@ int main(int argc, char* argv[])
   //Initialise the empty frame with -1 to simulate empty values.
   for(i = 0; i < frameSize; i++)
   {
-  frame[i] = -1;
+    frame[i] = -1;
   }
 
   //Loop through the reference string values.
   for(i = 0; i < REFERENCESTRINGLENGTH; i++)
   {
-  //add your code here
-  
+	//add your code here
+	currentValue = referenceString[i];
+    for (int j = 0; j < frameSize; j++)
+	{
+	  if (frame[j] == referenceString[i])
+	  {
+	    //hit
+		match = true;
+		printf("DEBUG:   hit frame[%d]: %d\n", j, frame[j]);
+	  }
+	}
+
+	if (match == true)
+	{
+	  match = false;
+	}
+	else
+	{
+	  frame[nextWritePosition] = currentValue;
+	  printf("DEBUG: fault frame[%d]: %d\n", nextWritePosition, frame[nextWritePosition]);
+	  pageFaults++;
+	  nextWritePosition++;
+	  if (nextWritePosition >= frameSize) //loop around the FIFO
+	  {
+        nextWritePosition = 0;
+	  }
+	}
   }
 
   //Sit here until the ctrl+c signal is given by the user.
   while(1)
   {
-  sleep(1);
+    sleep(1);
   }
 
   return 0;
@@ -90,3 +125,6 @@ void SignalHandler(int signal)
   printf("\nTotal page faults: %d\n", pageFaults);
   exit(0);
 }
+
+
+// End of File
