@@ -12,7 +12,7 @@
 all: clean build
 
 build:
-	gcc assignment2.c -o assignment2 -lpthread -lrt -Wall
+	bash build.sh
 
 clean: 
 	  $(RM) assignment2

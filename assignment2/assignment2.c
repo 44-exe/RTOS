@@ -111,9 +111,9 @@ int main(int argc, char const *argv[])
 
 void initializeData(ThreadParams *params) {
   // Initialize Sempahores
-  // sem_init(&(params->sem_A), 0, 1);  // Start with thread A
-  // sem_init(&(params->sem_B), 0, 0);  // initialise but dont signal
-  // sem_init(&(params->sem_C), 0, 0);  // initialise but dont signal
+  sem_init(&(params->sem_A), 0, 1);  // Start with thread A
+  sem_init(&(params->sem_B), 0, 0);  // initialise but dont signal
+  sem_init(&(params->sem_C), 0, 0);  // initialise but dont signal
   // Initialize thread attributes 
   pthread_attr_init(&attr);
 
@@ -123,10 +123,9 @@ void initializeData(ThreadParams *params) {
 
 void *ThreadA(void *params)
 {
-  // ThreadParams *p = params;
+  ThreadParams *p = params;
   FILE *pfile;
   char c[MAX_BUFFER];
-  char eof[4] = "EOF";  // describes the end of file
   int result;
 
   printf("/****** RUNNING THREAD A ******/\n");
@@ -149,11 +148,10 @@ void *ThreadA(void *params)
   while(1)
   {
     // wait for semaphore
-    // sem_wait(&(p->sem_A));
+    sem_wait(&(p->sem_A));
     char *tmp = fgets(c, sizeof(c), pfile);
     while (tmp != NULL)
     {
-      /***************** PRINT THREADA HERE *****************/
       printf("DEBUG A: Reading line from file: %s", c);
       // printf("DEBUG A: LEN c: %ld\n", sizeof(c));
       result=write(fd[1], &c, MAX_BUFFER);
@@ -165,7 +163,7 @@ void *ThreadA(void *params)
       }
       else
       {
-        // sem_post(&(p->sem_B));
+        sem_post(&(p->sem_B));
         break;
       }
     }
@@ -173,9 +171,10 @@ void *ThreadA(void *params)
     {
       printf("DEBUG A: Closing data.txt!\n");
       fclose(pfile);
-      result=write(fd[1], &eof, MAX_BUFFER);
+      result=write(fd[1], "4", 1);
       printf("/****** END OF THREAD A ******/\n");
-      // sem_post(&(p->sem_B));
+      sem_post(&(p->sem_B));
+      sem_close(&(p->sem_A));
     }
   }
 }
@@ -194,22 +193,15 @@ void *ThreadB(void *params)
   while(1)
   {
     // wait for semaphore
-    // sem_wait(&(p->sem_B));
+    sem_wait(&(p->sem_B));
     result = read(fd[0], buff, MAX_BUFFER);
     printf("DEBUG B: buff: %s", buff);
     if (result != MAX_BUFFER)
     {
-      printf("DEBUG B: result error Thread B!\n");
-      perror("read");
-      exit(20);
-    }
-
-    if (!strcmp(buff, "EOF"))
-    {
       printf("\nDEBUG B: reading pipe has completed\n");
-      p->message[0] = 2;
       printf("/****** END OF THREAD B ******/\n");
-      // sem_post(&(p->sem_C));
+      sem_post(&(p->sem_C));
+      sem_close(&(p->sem_B));
     }
     else
     {
@@ -217,7 +209,7 @@ void *ThreadB(void *params)
       {
         p->message[i] = buff[i];
       }
-      // sem_post(&(p->sem_C));
+      sem_post(&(p->sem_C));
     }
   }
 }
@@ -243,16 +235,11 @@ void *ThreadC(void *params)
   while(1)
   {
     // wait for semaphore
-    // sem_wait(&(p->sem_C));
-
-    if (p->message[0] == 2)
+    sem_wait(&(p->sem_C));
+    if (strlen(p->message) == 0)
     {
       printf("/****** END OF THREAD C ******/\n");
-      /***************** PRINT THREADC HERE *****************/
-      printf("DEBUG C: Final buffer: %s\n", p->message);
-      // sem_close(&(p->sem_A));
-      // sem_close(&(p->sem_B));
-      // sem_close(&(p->sem_C));
+      sem_close(&(p->sem_C));
       printf("DEBUG C: Closing output.txt!\n");
       fclose(pfile_out);
       exit(0);
@@ -269,10 +256,9 @@ void *ThreadC(void *params)
       write_to_file = 1;
     }
 
-    /***************** PRINT THREADC HERE *****************/
     printf("DEBUG C: p->message: %s\n", p->message);
     memset(p->message, 0, MAX_BUFFER);
-    // sem_post(&p->sem_A);
+    sem_post(&p->sem_A);
   }
 }
 
