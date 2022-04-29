@@ -1,7 +1,7 @@
 # comment
 # (note: the <tab> in the command line is necessary for make to work) 
 #target:  dependency1 dependency2 ...
-#      <tab> command
+#    <tab> command
 
 #for example:
 #
@@ -12,8 +12,8 @@
 all: clean build
 
 build:
-	gcc assignment2.c -o assignment2 -lpthread -lrt -Wall
+	gcc Assignment3_template_Prg_1.c -o Assignment3_Prg1 -lpthread -lrt -Wall
 
 clean: 
-	  $(RM) assignment2
-	  $(RM) output.txt
+	$(RM) Assignment3_Prg1
+	$(RM) output.txt
