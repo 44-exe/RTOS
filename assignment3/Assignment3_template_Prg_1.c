@@ -6,7 +6,7 @@ Please complete the code based on the assignment requirement.
 
 Assignment 3 Program_1 template
 Author: Jeong Bin Lee
-Date: 2022.04.29
+Date: 2022.05.05
 
 **********************************************************************************/
 /*
@@ -33,7 +33,8 @@ Date: 2022.04.29
 #define MAX_PROCESS 7
 
 /****** STRUCTURES ******/
-typedef struct SRTF_Params {
+typedef struct SRTF_Params
+{
   //add your variables here
   int pid;//process id
   int arrive_t, wait_t, burst_t, turnaround_t, remain_t;//process time
@@ -95,8 +96,9 @@ void input_processes(void)
   processes[6].pid = 7; processes[6].arrive_t = 26; processes[6].burst_t = 2;
   
   //Initialise remaining time to be same as burst time
-  for (i = 0; i < MAX_PROCESS; i++) {
-  processes[i].remain_t = processes[i].burst_t;
+  for (i = 0; i < MAX_PROCESS; i++) 
+  {
+    processes[i].remain_t = processes[i].burst_t;
   }
 }
 
@@ -117,9 +119,9 @@ void process_SRTF(void)
   
     //Check all processes that have arrived for lowest remain time then set the lowest to be the smallest
     for (i=0;i<MAX_PROCESS;i++)
-  {
-      if (processes[i].arrive_t <= time && processes[i].remain_t < processes[smallest].remain_t && processes[i].remain_t > 0)
     {
+      if (processes[i].arrive_t <= time && processes[i].remain_t < processes[smallest].remain_t && processes[i].remain_t > 0)
+      {
         smallest = i;
       }
     } //end of 'for (i=0;i<PROCESSNUM;i++)'
@@ -129,14 +131,14 @@ void process_SRTF(void)
   
     //If process is finished, save time information, add to average totals and increase remain
     if (processes[smallest].remain_t == 0)
-  {
+    {
       remain++;//one process has been finished!
     
       endTime=time+1; //time must increase 1 => endTime
     
       processes[smallest].turnaround_t = endTime-processes[smallest].arrive_t;
       
-    //endTime - (arrive+busrt)
+      //endTime - (arrive+busrt)
       processes[smallest].wait_t = endTime-processes[smallest].burst_t-processes[smallest].arrive_t;
       
       avg_wait_t += processes[smallest].wait_t; // intermedia value
@@ -160,7 +162,6 @@ void calculate_average(void)
 // prints all result
 void print_results(void)
 {
-  
   printf("Process Schedule Table: \n");
   
   printf("\tProcess ID\tArrival Time\tBurst Time\tWait Time\tTurnaround Time\n");
@@ -186,7 +187,8 @@ void send_FIFO(void)
   
   res = mkfifo(myfifo, 0777);
   
-  if (res < 0) {
+  if (res < 0)
+  {
     printf("mkfifo error\n");
     exit(0);
   }
@@ -195,7 +197,8 @@ void send_FIFO(void)
   
   fifofd = open(myfifo, O_WRONLY);
   
-  if (fifofd < 0) {
+  if (fifofd < 0)
+  {
     printf("fifo open send error\n");
     exit(0);
   }
@@ -219,7 +222,8 @@ void read_FIFO(void)
   
   fifofd = open(myfifo, O_RDONLY);
   
-  if (fifofd < 0) {
+  if (fifofd < 0)
+  {
     printf("fifo open read error\n");
     exit(0);
   }
@@ -267,7 +271,7 @@ int main(int argc, char const *argv[])
 
   /* initialize the parameters */
   // add your code
-  if(sem_init(&sem_SRTF, 0, 0)!=0)
+  if(sem_init(&sem_SRTF, 0, 0) != 0)
   {
     printf("semaphore initialize erro \n");
     return -10;

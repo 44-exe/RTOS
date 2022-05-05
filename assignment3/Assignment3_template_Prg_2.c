@@ -6,14 +6,14 @@ Please complete the code based on the assignment requirement.
 
 Assignment 3 Program_2 template
 Author: Jeong Bin Lee
-Date: 2022.04.29
+Date: 2022.05.05
 
 **********************************************************************************/
 /*
   To compile prog_2 ensure that gcc is installed and run the following command:
   gcc -Wall -O2 program_2.c -o prog_2 -lpthread -lrt
-
 */
+
 #include <stdio.h>
 #include <pthread.h>
 #include <string.h>
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   //add your code here
   signal(SIGINT, SignalHandler);
   
-  if(argc < 2)
+  if (argc < 2)
   {
     fprintf(stderr,"usage: requires <int> (for example: ./Assignment3_Prg2 4)\n");
     fprintf(stderr,"%s \n", *argv);
@@ -69,41 +69,43 @@ int main(int argc, char* argv[])
   int currentValue;
 
   //Initialise the empty frame with -1 to simulate empty values.
-  for(i = 0; i < frameSize; i++)
+  for (i = 0; i < frameSize; i++)
   {
     frame[i] = -1;
   }
 
+  printf("\tFault Status\tFault Number\tFrame State\n");
+  
   //Loop through the reference string values.
-  for(i = 0; i < REFERENCESTRINGLENGTH; i++)
+  for (i = 0; i < REFERENCESTRINGLENGTH; i++)
   {
-	//add your code here
-	currentValue = referenceString[i];
+	  //add your code here
+	  currentValue = referenceString[i];
     for (int j = 0; j < frameSize; j++)
-	{
-	  if (frame[j] == referenceString[i])
 	  {
-	    //hit
-		match = true;
-		printf("DEBUG:   hit frame[%d]: %d\n", j, frame[j]);
+	    if (frame[j] == referenceString[i])
+	    {
+	      //hit
+		    match = true;
+		    printf("\thit \t\tframe[%d]\t%d\n", j, frame[j]);
+	    }
 	  }
-	}
 
-	if (match == true)
-	{
-	  match = false;
-	}
-	else
-	{
-	  frame[nextWritePosition] = currentValue;
-	  printf("DEBUG: fault frame[%d]: %d\n", nextWritePosition, frame[nextWritePosition]);
-	  pageFaults++;
-	  nextWritePosition++;
-	  if (nextWritePosition >= frameSize) //loop around the FIFO
+	  if (match == true)
 	  {
-        nextWritePosition = 0;
+	    match = false;
 	  }
-	}
+	  else
+	  {
+	    frame[nextWritePosition] = currentValue;
+	    printf("\tfault \t\tframe[%d]\t%d\n", nextWritePosition, frame[nextWritePosition]);
+	    pageFaults++;
+	    nextWritePosition++;
+	    if (nextWritePosition >= frameSize) //loop around the FIFO
+	    {
+        nextWritePosition = 0;
+	    }
+	  }
   }
 
   //Sit here until the ctrl+c signal is given by the user.
