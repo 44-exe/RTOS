@@ -21,4 +21,4 @@ Prg_2:
 
 clean: 
 	$(RM) Assignment3_Prg1 Assignment3_Prg2
-	$(RM) output.txt
+	$(RM) *.txt
